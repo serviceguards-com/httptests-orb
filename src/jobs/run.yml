@@ -1,0 +1,52 @@
+description: |
+  Run HTTP integration tests (same behavior as the HTTPTests GitHub Action).
+  Requires checkout before this job. Uses Docker Compose to spin up the test environment.
+parameters:
+  httptests-directory:
+    type: string
+    default: "."
+    description: "Path to the directory containing .httptests folder (e.g., '.' or './microservices')"
+  python-version:
+    type: string
+    default: "3.x"
+    description: "Python version to use (on machine executor, system Python 3 is used)"
+  script-version:
+    type: string
+    default: "main"
+    description: "Version/branch of httptests-action scripts to fetch from GitHub (e.g. main, v1.2.0)"
+executor: default
+steps:
+  - checkout
+
+  - run:
+      name: Set up Python and install dependencies
+      command: |
+        sudo apt-get update -y
+        sudo apt-get install -y python3 python3-pip
+        python3 -m pip install --upgrade pip -q
+        pip3 install PyYAML requests -q
+
+  - run:
+      name: Download HTTPTests scripts
+      command: |
+        HTTPTESTS_SCRIPT_DIR="$HOME/httptests-scripts"
+        mkdir -p "$HTTPTESTS_SCRIPT_DIR"
+        SCRIPT_VERSION="<< parameters.script-version >>"
+        BASE_URL="https://raw.githubusercontent.com/serviceguards-com/httptests-action/${SCRIPT_VERSION}"
+        for f in add_upstream_headers.py generate_docker_compose.py main.py; do
+          curl -fsSL "${BASE_URL}/${f}" -o "${HTTPTESTS_SCRIPT_DIR}/${f}"
+        done
+        echo "HTTPTESTS_SCRIPT_DIR=$HTTPTESTS_SCRIPT_DIR" >> "$BASH_ENV"
+
+  - run:
+      name: Add upstream target headers
+      command: |
+        source "$BASH_ENV"
+        echo "🔧 Adding X-Upstream-Target headers to nginx configs..."
+        python3 "${HTTPTESTS_SCRIPT_DIR}/add_upstream_headers.py" "<< parameters.httptests-directory >>" || true
+
+  - run:
+      name: Generate and run tests
+      environment:
+        HTTPTESTS_DIR: "<< parameters.httptests-directory >>"
+      command: <<include(scripts/run_httptests.sh)>>

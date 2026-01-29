@@ -1,0 +1,9 @@
+version: 2.1
+
+description: |
+  Automated HTTP integration testing for CircleCI - test proxies (NGINX, Apache, Caddy) and microservices in CI/CD.
+  Same behavior as the HTTPTests GitHub Action.
+
+display:
+  home_url: "https://www.httptests.com"
+  source_url: "https://github.com/serviceguards-com/httptests-action"

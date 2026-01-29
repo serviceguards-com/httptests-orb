@@ -1,0 +1,6 @@
+description: |
+  Machine executor with Docker and Docker Compose for running HTTPTests.
+  Uses Ubuntu 22.04 with Docker pre-installed.
+parameters: {}
+machine:
+  image: ubuntu-2204:current

@@ -1,0 +1,11 @@
+description: |
+  Basic usage: checkout and run HTTPTests on the current directory (containing .httptests).
+usage:
+  version: 2.1
+  orbs:
+    httptests: your-namespace/httptests@volatile
+  workflows:
+    httptests:
+      jobs:
+        - httptests/run:
+            httptests-directory: "."
